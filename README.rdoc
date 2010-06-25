@@ -1,0 +1,48 @@
+
+== Schema support for Rails SQL Server 2000, 2005 and 2008 Adapter
+
+Adds support for schemas to the activerecord-sqlserver-adapter gem
+
+== Installation
+
+  $ gem install activerecord-sqlserver-adapter
+  $ gem install activerecord-sqlserver-adapter-schemas
+
+Optionally configure your gem dependencies in your rails environment.rb file.
+
+  config.gem 'activerecord-sqlserver-adapter', :version => 'x.x.xx'
+  config.gem 'activerecord-sqlserver-adapter-schemas', :version => 'x.x.xx'
+  
+== Using Schemas with ActiveRecord
+
+The simplest way to use schemas is to simply specify it as part of the table name
+
+  class FooBar < ActiveRecord::Base
+    set_table_name 'foo.bars'
+  end
+  
+To use any the following methods, you must first enable schema names:
+
+  ActiveRecord::Base.use_schema_names = true
+
+With use_schema_names enabled, models in a module will use the module name as the schema name automatically.  For example:
+
+  # the table name for this model would be assumed to be foo.bars
+  class Foo::Bar < ActiveRecord::Base
+  end
+  
+The schema name can also be set explicitly when use_schema_names is enabled:
+
+  class Bar < ActiveRecord::Base
+    set_schema_name 'foo'
+  end
+  
+== Migrations
+
+It is possible to have separate schema_migrations tables in different schemas existing in the database at the same time.  This is useful if you have multiple rails applications using the same database but different schemas.
+
+To use this feature, use different users for each application with different default schemas set in the database.  So if you have 2 rails applications, if they log in as different users with different default schemas, they each get their own schema_migrations table in that schema.
+
+== License
+
+Copyright 2010. It is free software, and may be redistributed under the terms specified in the MIT-LICENSE file.
