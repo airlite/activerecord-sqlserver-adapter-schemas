@@ -37,7 +37,7 @@ module SqlserverAdapter
   
   def unqualify_schema_name(table_name)
     parts = table_name.to_s.split('.')
-    parts.length == 1 ? default_schema : parts[parts.length - 2].gsub(/[\[\]]/,'')
+    parts.length == 1 || parts[parts.length - 2].blank? ? default_schema : parts[parts.length - 2].gsub(/[\[\]]/,'')
   end
   
   def unqualify_table_name_if_default_schema(table_name)

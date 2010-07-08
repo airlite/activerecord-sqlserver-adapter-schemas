@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name     = "activerecord-sqlserver-adapter-schemas"
-  s.version  = "1.0.0"
-  s.date     = "2010-06-25"
+  s.version  = "1.0.1"
+  s.date     = "2010-07-08"
   s.summary  = "Adds schema support to activerecord-sqlserver-adapter."
   s.email    = "dtjablonski@airliteplastics.com"
   s.description = "Adds schema support to activerecord-sqlserver-adapter."
