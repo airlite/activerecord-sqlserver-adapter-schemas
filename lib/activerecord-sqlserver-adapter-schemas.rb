@@ -12,6 +12,16 @@ end
 class ActiveRecord::ConnectionAdapters::SQLServerAdapter
   include ActiveRecord::Schemas::ConnectionAdapters::SqlserverAdapter
   
+  def table_exists?(table_name)
+    table_name = unqualify_table_name_if_default_schema(table_name)
+    super(table_name) || tables.include?(table_name) || views.include?(table_name)
+  end
+  
+  def table_name_or_views_table_name(table_name)
+    unquoted_table_name = unqualify_table_name_if_default_schema(table_name)
+    views.include?(unquoted_table_name) ? view_table_name(unquoted_table_name) : unquoted_table_name
+  end
+  
   # This method is overridden to support linked servers
   def unqualify_db_name(table_name)
     table_names = table_name.to_s.split('.')
@@ -31,12 +41,20 @@ class ActiveRecord::ConnectionAdapters::SQLServerAdapter
   # This method is overridden to support schema names
   def views(name = nil)
     # return schema.view unless the schema is the default schema, in which case just return view
-    @sqlserver_views_cache ||= 
-      info_schema_query do
-         select_values("SELECT TABLE_SCHEMA + '.' + TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')").collect do |view|
-           default_schema && view.index("#{default_schema}.") == 0 ? view[default_schema.length + 1..view.length] : view
-         end
-      end
+    info_schema_query do
+      select_values("SELECT TABLE_SCHEMA + '.' + TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME NOT IN ('sysconstraints','syssegments')").collect do |view|
+        default_schema && view.index("#{default_schema}.") == 0 ? view[default_schema.length + 1..view.length] : view
+       end
+    end
+  end
+  
+  def columns(table_name, name = nil)
+    return [] if table_name.blank?
+    cache_key = unqualify_table_name_if_default_schema(table_name)
+    @sqlserver_columns_cache[cache_key] ||= column_definitions(table_name).collect do |ci|
+      sqlserver_options = ci.except(:name,:default_value,:type,:null).merge(:database_year=>database_year)
+      ::ActiveRecord::ConnectionAdapters::SQLServerColumn.new ci[:name], ci[:default_value], ci[:type], ci[:null], sqlserver_options
+    end
   end
   
   # This method is overridden to support references such as database..table
